@@ -1,0 +1,257 @@
+[2024-12-19 18:32:15] [Return Mileage] Received input: 510000
+[2024-12-19 18:32:15] [Return Mileage] Current state data: Array
+(
+    [state] => AWAITING_RETURN_MILEAGE
+    [temp_data] => {"car_id": "1", "rental_id": "8", "start_mileage": "507000", "current_mileage": "507000"}
+)
+
+[2024-12-19 18:32:15] [Return Mileage] Cleaned input: 510000
+[2024-12-19 18:32:15] [Return Mileage] Input is numeric
+[2024-12-19 18:32:15] [Return Mileage] Decoded temp_data: Array
+(
+    [car_id] => 1
+    [rental_id] => 8
+    [start_mileage] => 507000
+    [current_mileage] => 507000
+)
+
+[2024-12-19 18:32:15] [Return Mileage] Return mileage: 510000
+[2024-12-19 18:32:15] [Return Mileage] Start mileage: 507000
+[2024-12-19 18:32:15] [Return Mileage] Attempting database updates - Rental ID: 8, Car ID: 1
+[2024-12-19 18:32:15] [Return Mileage] Rental update query: UPDATE `rentals` SET status='completed', `return_mileage`='510000', `actual_return_date`='2024-12-19 18:32:15' WHERE id='8';
+[2024-12-19 18:33:51] [Return Mileage] Received input: 510000
+[2024-12-19 18:33:51] [Return Mileage] Current state data: Array
+(
+    [state] => AWAITING_RETURN_MILEAGE
+    [temp_data] => {"car_id": "1", "rental_id": "8", "start_mileage": "507000", "current_mileage": "507000"}
+)
+
+[2024-12-19 18:33:51] [Return Mileage] Cleaned input: 510000
+[2024-12-19 18:33:51] [Return Mileage] Input is numeric
+[2024-12-19 18:33:51] [Return Mileage] Decoded temp_data: Array
+(
+    [car_id] => 1
+    [rental_id] => 8
+    [start_mileage] => 507000
+    [current_mileage] => 507000
+)
+
+[2024-12-19 18:33:51] [Return Mileage] Return mileage: 510000
+[2024-12-19 18:33:51] [Return Mileage] Start mileage: 507000
+[2024-12-19 18:33:51] [Return Mileage] Attempting database updates - Rental ID: 8, Car ID: 1
+[2024-12-19 18:33:51] [Return Mileage] Rental update query: UPDATE `rentals` SET status='completed', `end_mileage`='510000', `actual_return_date`='2024-12-19 18:33:51' WHERE id='8';
+[2024-12-19 18:33:51] [Return Mileage] Rental update result: Success
+[2024-12-19 18:33:51] [Return Mileage] Car update query: UPDATE cars SET status='available', current_mileage=510000 WHERE id=1
+[2024-12-19 18:33:51] [Return Mileage] Car update result: Success
+[2024-12-19 18:33:51] [Return Mileage] All updates successful
+[2024-12-19 18:33:51] [Return Mileage] State reset result: Success
+[2024-12-20 08:13:25] [Return Mileage] Received input: 13212312
+[2024-12-20 08:13:25] [Return Mileage] Current state data: Array
+(
+    [state] => AWAITING_RETURN_MILEAGE
+    [temp_data] => {"car_id": "1", "rental_id": "10", "start_mileage": "510000", "current_mileage": "510000"}
+)
+
+[2024-12-20 08:13:25] [Return Mileage] Cleaned input: 13212312
+[2024-12-20 08:13:25] [Return Mileage] Input is numeric
+[2024-12-20 08:13:25] [Return Mileage] Decoded temp_data: Array
+(
+    [car_id] => 1
+    [rental_id] => 10
+    [start_mileage] => 510000
+    [current_mileage] => 510000
+)
+
+[2024-12-20 08:13:25] [Return Mileage] Return mileage: 13212312
+[2024-12-20 08:13:25] [Return Mileage] Start mileage: 510000
+[2024-12-20 08:50:53] [Return Mileage] Received input: 30000
+[2024-12-20 08:50:53] [Return Mileage] Current state data: Array
+(
+    [state] => AWAITING_RETURN_MILEAGE
+    [temp_data] => {"car_id": "4", "rental_id": "11", "start_mileage": "29026", "current_mileage": "29026"}
+)
+
+[2024-12-20 08:50:53] [Return Mileage] Cleaned input: 30000
+[2024-12-20 08:50:53] [Return Mileage] Input is numeric
+[2024-12-20 08:50:53] [Return Mileage] Decoded temp_data: Array
+(
+    [car_id] => 4
+    [rental_id] => 11
+    [start_mileage] => 29026
+    [current_mileage] => 29026
+)
+
+[2024-12-20 08:50:53] [Return Mileage] Return mileage: 30000
+[2024-12-20 08:50:53] [Return Mileage] Start mileage: 29026
+[2024-12-20 11:16:37] [Return Mileage] Received input: 107000
+[2024-12-20 11:16:37] [Return Mileage] Current state data: Array
+(
+    [state] => AWAITING_RETURN_MILEAGE
+    [temp_data] => {"car_id": "1", "rental_id": "1", "start_mileage": "102000", "current_mileage": "102000"}
+)
+
+[2024-12-20 11:16:37] [Return Mileage] Cleaned input: 107000
+[2024-12-20 11:16:37] [Return Mileage] Input is numeric
+[2024-12-20 11:16:37] [Return Mileage] Decoded temp_data: Array
+(
+    [car_id] => 1
+    [rental_id] => 1
+    [start_mileage] => 102000
+    [current_mileage] => 102000
+)
+
+[2024-12-20 11:16:37] [Return Mileage] Return mileage: 107000
+[2024-12-20 11:16:37] [Return Mileage] Start mileage: 102000
+[2024-12-20 11:20:39] [Return Mileage] Received input: 63000
+[2024-12-20 11:20:39] [Return Mileage] Current state data: Array
+(
+    [state] => AWAITING_RETURN_MILEAGE
+    [temp_data] => {"car_id": "2", "rental_id": "2", "start_mileage": "62300", "current_mileage": "62300"}
+)
+
+[2024-12-20 11:20:39] [Return Mileage] Cleaned input: 63000
+[2024-12-20 11:20:39] [Return Mileage] Input is numeric
+[2024-12-20 11:20:39] [Return Mileage] Decoded temp_data: Array
+(
+    [car_id] => 2
+    [rental_id] => 2
+    [start_mileage] => 62300
+    [current_mileage] => 62300
+)
+
+[2024-12-20 11:20:39] [Return Mileage] Return mileage: 63000
+[2024-12-20 11:20:39] [Return Mileage] Start mileage: 62300
+[2024-12-20 11:36:46] [Return Mileage] Received input: 110000
+[2024-12-20 11:36:46] [Return Mileage] Current state data: Array
+(
+    [state] => AWAITING_RETURN_MILEAGE
+    [temp_data] => {"car_id": "1", "rental_id": "3", "start_mileage": "107000", "current_mileage": "107000"}
+)
+
+[2024-12-20 11:36:46] [Return Mileage] Cleaned input: 110000
+[2024-12-20 11:36:46] [Return Mileage] Input is numeric
+[2024-12-20 11:36:46] [Return Mileage] Decoded temp_data: Array
+(
+    [car_id] => 1
+    [rental_id] => 3
+    [start_mileage] => 107000
+    [current_mileage] => 107000
+)
+
+[2024-12-20 11:36:46] [Return Mileage] Return mileage: 110000
+[2024-12-20 11:36:46] [Return Mileage] Start mileage: 107000
+[2024-12-20 11:36:46] [Return Mileage] All updates successful
+[2024-12-20 11:36:46] [Return Mileage] State reset result: Success
+[2024-12-21 13:56:12] [Return Mileage] Received input: 19928
+[2024-12-21 13:56:12] [Return Mileage] Current state data: Array
+(
+    [state] => AWAITING_RETURN_MILEAGE
+    [temp_data] => {"car_id": "1", "rental_id": "1", "start_mileage": "19927", "current_mileage": "19927"}
+)
+
+[2024-12-21 13:56:12] [Return Mileage] Cleaned input: 19928
+[2024-12-21 13:56:12] [Return Mileage] Input is numeric
+[2024-12-21 13:56:12] [Return Mileage] Decoded temp_data: Array
+(
+    [car_id] => 1
+    [rental_id] => 1
+    [start_mileage] => 19927
+    [current_mileage] => 19927
+)
+
+[2024-12-21 13:56:12] [Return Mileage] Return mileage: 19928
+[2024-12-21 13:56:12] [Return Mileage] Start mileage: 19927
+[2024-12-21 13:56:12] [Return Mileage] All updates successful
+[2024-12-21 13:56:12] [Return Mileage] State reset result: Success
+[2024-12-22 17:05:38] [Return Mileage] Received input: 24457
+[2024-12-22 17:05:38] [Return Mileage] Current state data: Array
+(
+    [state] => AWAITING_RETURN_MILEAGE
+    [temp_data] => {"car_id": "3", "rental_id": "1", "start_mileage": "24115", "current_mileage": "24115"}
+)
+
+[2024-12-22 17:05:38] [Return Mileage] Cleaned input: 24457
+[2024-12-22 17:05:38] [Return Mileage] Input is numeric
+[2024-12-22 17:05:38] [Return Mileage] Decoded temp_data: Array
+(
+    [car_id] => 3
+    [rental_id] => 1
+    [start_mileage] => 24115
+    [current_mileage] => 24115
+)
+
+[2024-12-22 17:05:38] [Return Mileage] Return mileage: 24457
+[2024-12-22 17:05:38] [Return Mileage] Start mileage: 24115
+[2024-12-22 17:05:38] [Return Mileage] All updates successful
+[2024-12-22 17:05:38] [Return Mileage] State reset result: Success
+[2024-12-22 17:08:23] [Return Mileage] Received input: 20330
+[2024-12-22 17:08:23] [Return Mileage] Current state data: Array
+(
+    [state] => AWAITING_RETURN_MILEAGE
+    [temp_data] => {"car_id": "2", "rental_id": "2", "start_mileage": "19927", "current_mileage": "19927"}
+)
+
+[2024-12-22 17:08:23] [Return Mileage] Cleaned input: 20330
+[2024-12-22 17:08:23] [Return Mileage] Input is numeric
+[2024-12-22 17:08:23] [Return Mileage] Decoded temp_data: Array
+(
+    [car_id] => 2
+    [rental_id] => 2
+    [start_mileage] => 19927
+    [current_mileage] => 19927
+)
+
+[2024-12-22 17:08:23] [Return Mileage] Return mileage: 20330
+[2024-12-22 17:08:23] [Return Mileage] Start mileage: 19927
+[2024-12-22 17:08:23] [Return Mileage] All updates successful
+[2024-12-22 17:08:23] [Return Mileage] State reset result: Success
+[2024-12-23 23:49:37] [Return Mileage] Received input: 0
+[2024-12-23 23:49:37] [Return Mileage] Current state data: Array
+(
+    [state] => AWAITING_RETURN_MILEAGE
+    [temp_data] => {"car_id": "3", "rental_id": "3", "start_mileage": "24400", "current_mileage": "24400"}
+)
+
+[2024-12-23 23:49:37] [Return Mileage] ERROR: Empty input received
+[2024-12-23 23:50:04] [Return Mileage] Received input: 24640
+[2024-12-23 23:50:04] [Return Mileage] Current state data: Array
+(
+    [state] => AWAITING_RETURN_MILEAGE
+    [temp_data] => {"car_id": "3", "rental_id": "3", "start_mileage": "24400", "current_mileage": "24400"}
+)
+
+[2024-12-23 23:50:04] [Return Mileage] Cleaned input: 24640
+[2024-12-23 23:50:04] [Return Mileage] Input is numeric
+[2024-12-23 23:50:04] [Return Mileage] Decoded temp_data: Array
+(
+    [car_id] => 3
+    [rental_id] => 3
+    [start_mileage] => 24400
+    [current_mileage] => 24400
+)
+
+[2024-12-23 23:50:04] [Return Mileage] Return mileage: 24640
+[2024-12-23 23:50:04] [Return Mileage] Start mileage: 24400
+[2024-12-23 23:50:04] [Return Mileage] All updates successful
+[2024-12-23 23:50:04] [Return Mileage] State reset result: Success
+[2024-12-24 10:56:48] [Return Mileage] Received input: 20709
+[2024-12-24 10:56:48] [Return Mileage] Current state data: Array
+(
+    [state] => AWAITING_RETURN_MILEAGE
+    [temp_data] => {"car_id": "2", "rental_id": "4", "start_mileage": "20330", "current_mileage": "20330"}
+)
+
+[2024-12-24 10:56:48] [Return Mileage] Cleaned input: 20709
+[2024-12-24 10:56:48] [Return Mileage] Input is numeric
+[2024-12-24 10:56:48] [Return Mileage] Decoded temp_data: Array
+(
+    [car_id] => 2
+    [rental_id] => 4
+    [start_mileage] => 20330
+    [current_mileage] => 20330
+)
+
+[2024-12-24 10:56:48] [Return Mileage] Return mileage: 20709
+[2024-12-24 10:56:48] [Return Mileage] Start mileage: 20330
+[2024-12-24 10:56:48] [Return Mileage] All updates successful
+[2024-12-24 10:56:48] [Return Mileage] State reset result: Success
