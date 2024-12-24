@@ -442,7 +442,10 @@ if (isset($callback)) {
             // Add toggle and back buttons
             $keyboard[] = [['text' => '📅 Oxirgi 30 kun', 'callback_data' => 'car_status_monthly']];
             $keyboard[] = [['text' => '⬅️ Orqaga', 'callback_data' => 'back_to_main']];
-            
+            bot('deletemessage', [
+                'chat_id' => $chat_id,
+                'message_id' => $callback->message->message_id
+            ]);
             bot('sendMessage', [
                 'chat_id' => $chat_id,
                 'text' => $response,
