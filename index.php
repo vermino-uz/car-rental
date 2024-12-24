@@ -508,7 +508,8 @@ if (isset($callback)) {
             } else {
                 $response .= "Mijozlar mavjud emas.";
             }
-            
+
+            bot('deleteMessage', ['chat_id' => $chat_id, 'message_id' => $callback->message->message_id]);
             bot('sendMessage', [
                 'chat_id' => $chat_id,
                 'text' => $response,
