@@ -1,6 +1,7 @@
 <?php
 require_once 'config.php';
 require_once 'botsdk/tg.php';
+require_once 'botsdk/message_handler.php';
 
 // Set timezone to Asia/Tashkent
 date_default_timezone_set('Asia/Tashkent');
@@ -182,34 +183,24 @@ $states = [
 
 // Command handlers
 if ($text == '/start' || $text == '⬅️ Asosiy menyu') {
+    if (!isAdmin($chat_id)) {
+        sendCleanMessage($chat_id, "Siz admin emassiz!");
+        exit();
+    }
+    
     $keyboard = [
         [
-            ['text' => '🚗 Yangi ijara', 'web_app' => ['url'=>"https://vermino.uz/bots/orders/ibo/rent_form.php?user_id=$chat_id"]],
-            
+            ['text' => '➕ Yangi ijara', 'callback_data' => 'new_rental'],
+            ['text' => '📊 Ijaralar', 'callback_data' => 'rental_list']
         ],
         [
-            ['text' => '📊 Ijaralar ro\'yxati', 'callback_data' => 'rental_list'],
-            // ['text' => '🚨 Shtraflar', 'callback_data' => 'violations'],
+            ['text' => '🚗 Mashinalar', 'callback_data' => 'car_status'],
             ['text' => '📱 Mijozlar', 'callback_data' => 'customers']
-        ],
-        [
-            ['text' => '🚗 Mashinalar holati', 'callback_data' => 'car_status'],
-            ['text' => '➕ Mashina qo\'shish', 'callback_data' => 'add_car']
         ]
     ];
     
-    bot('sendMessage', [
-        'chat_id' => $chat_id,
-        'text' => "Assalomu alaykum, 715RentCar tizimiga xush kelibsiz!\n\nQuyidagi menyudan kerakli bo'limni tanlang:",
-        'reply_markup' => json_encode(['inline_keyboard' => $keyboard])
-    ]);
-    
-    // Reset state to IDLE
-    $conn->query("INSERT INTO user_states (user_id, state) VALUES ($from_id, 'IDLE') 
-                 ON DUPLICATE KEY UPDATE state = 'IDLE', temp_data = NULL");
-    
-    // Check for expired rentals
-    checkExpiredRentals();
+    sendCleanMessage($chat_id, "Asosiy menyu:", ['inline_keyboard' => $keyboard]);
+    $conn->query("UPDATE user_states SET state = 'IDLE', temp_data = NULL WHERE user_id = $from_id");
 }
 
 // Add after the other command handlers
@@ -269,179 +260,101 @@ if (isset($callback)) {
     
     switch ($data) {
         case 'new_rental':
-            bot('sendMessage', [
-                'chat_id' => $chat_id,
-                'text' => "Mijozning to'liq ismini kiriting:",
-                'reply_markup' => json_encode([
-                    'inline_keyboard' => [
-                        [['text' => '⬅️ Orqaga', 'callback_data' => 'back_to_main']]
-                    ]
-                ])
-            ]);
-            $conn->query("INSERT INTO user_states (user_id, state) VALUES ($from_id, 'AWAITING_CUSTOMER_NAME') 
-                         ON DUPLICATE KEY UPDATE state = 'AWAITING_CUSTOMER_NAME', temp_data = NULL");
+            editOrSendMessage($chat_id, "Mijozning to'liq ismini kiriting:", [
+                'inline_keyboard' => [
+                    [['text' => '⬅️ Orqaga', 'callback_data' => 'back_to_main']]
+                ]
+            ], $mid);
+            $conn->query("UPDATE user_states SET state = 'AWAITING_CUSTOMER_NAME', temp_data = NULL WHERE user_id = $from_id");
             break;
             
         case 'rental_list':
-            // Get active rentals
-            $active_rentals = $conn->query("
+            $rentals = $conn->query("
                 SELECT r.*, c.full_name, c.phone_number, cars.model, cars.license_plate 
                 FROM rentals r 
                 JOIN customers c ON r.customer_id = c.id 
                 JOIN cars ON r.car_id = cars.id 
                 WHERE r.status = 'active' 
-                ORDER BY r.end_date ASC
+                ORDER BY r.start_date DESC
             ");
             
-            // Get completed rentals (last 30 days)
-            $completed_rentals = $conn->query("
-                SELECT r.*, c.full_name, c.phone_number, cars.model, cars.license_plate 
-                FROM rentals r 
-                JOIN customers c ON r.customer_id = c.id 
-                JOIN cars ON r.car_id = cars.id 
-                WHERE r.status = 'completed' 
-                AND r.actual_return_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-                ORDER BY r.actual_return_date DESC
-            ");
+            $text = "📊 Faol ijaralar ro'yxati:\n\n";
+            $keyboard = [];
             
-            // Active rentals section
-            $response = "📊 <b>Faol ijaralar:</b>\n\n";
-            if ($active_rentals && $active_rentals->num_rows > 0) {
-                while ($rental = $active_rentals->fetch_assoc()) {
-                    $response .= "🚗 {$rental['model']} - {$rental['license_plate']}\n";
-                    $response .= "👤 {$rental['full_name']}\n";
-                    $response .= "📱 {$rental['phone_number']}\n";
-                    $response .= "⏰ Tugash vaqti: " . date('d.m.Y H:i', strtotime($rental['end_date'])) . "\n";
-                    $response .= "💰 Ijara: " . number_format($rental['rental_price']) . " so'm\n";
-                    if ($rental['deposit_type'] === 'money') {
-                        $response .= "🔐 Zalog: " . number_format($rental['deposit_amount']) . " so'm\n";
-                    } else {
-                        $response .= "🔐 Zalog: {$rental['deposit_items']}\n";
-                    }
-                    $response .= "\n";
+            if ($rentals->num_rows > 0) {
+                while ($rental = $rentals->fetch_assoc()) {
+                    $text .= "🚗 {$rental['model']} ({$rental['license_plate']})\n";
+                    $text .= "👤 {$rental['full_name']}\n";
+                    $text .= "📱 {$rental['phone_number']}\n";
+                    $text .= "📅 " . date('d.m.Y', strtotime($rental['start_date'])) . " - " . date('d.m.Y', strtotime($rental['end_date'])) . "\n";
+                    $text .= "💰 {$rental['rental_price']} so'm\n\n";
+                    
+                    $keyboard[] = [['text' => "🔄 {$rental['model']} ({$rental['license_plate']})", 'callback_data' => "return_car_{$rental['car_id']}"]];
                 }
             } else {
-                $response .= "Hozirda faol ijaralar mavjud emas.\n\n";
+                $text .= "Hozirda faol ijaralar yo'q";
             }
             
-            // Send active rentals message
-            bot('sendMessage', [
-                'chat_id' => $chat_id,
-                'text' => $response,
-                'parse_mode' => 'HTML',
-                'reply_markup' => json_encode([
-                    'inline_keyboard' => [
-                        [['text' => '📜 Tugatilgan ijaralar', 'callback_data' => 'completed_rentals']],
-                        [['text' => '⬅️ Orqaga', 'callback_data' => 'back_to_main']]
-                    ]
-                ])
-            ]);
-            break;
+            $keyboard[] = [['text' => '⬅️ Orqaga', 'callback_data' => 'back_to_main']];
             
-        case 'completed_rentals':
-            // Get completed rentals (last 30 days)
-            $completed_rentals = $conn->query("
-                SELECT r.*, c.full_name, c.phone_number, cars.model, cars.license_plate 
-                FROM rentals r 
-                JOIN customers c ON r.customer_id = c.id 
-                JOIN cars ON r.car_id = cars.id 
-                WHERE r.status = 'completed' 
-                AND r.actual_return_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-                ORDER BY r.actual_return_date DESC
-            ");
-            
-            $response = "📜 <b>Tugatilgan ijaralar</b> (oxirgi 30 kun):\n\n";
-            if ($completed_rentals && $completed_rentals->num_rows > 0) {
-                while ($rental = $completed_rentals->fetch_assoc()) {
-                    $response .= "🚗 {$rental['model']} - {$rental['license_plate']}\n";
-                    $response .= "👤 {$rental['full_name']}\n";
-                    $response .= "📱 {$rental['phone_number']}\n";
-                    $response .= "📅 Ijara davri: " . date('d.m.Y H:i', strtotime($rental['start_date'])) . 
-                                " - " . date('d.m.Y H:i', strtotime($rental['actual_return_date'])) . "\n";
-                    $response .= "💰 Ijara: " . number_format($rental['rental_price']) . " so'm\n";
-                    $response .= "📊 Probeg: " . number_format($rental['start_mileage']) . " → " . 
-                                number_format($rental['end_mileage']) . " km\n";
-                    if ($rental['deposit_type'] === 'money') {
-                        $response .= "🔐 Zalog: " . number_format($rental['deposit_amount']) . " so'm\n";
-                    } else {
-                        $response .= "🔐 Zalog: {$rental['deposit_items']}\n";
-                    }
-                    $response .= "\n";
-                }
-            } else {
-                $response .= "Oxirgi 30 kunda tugatilgan ijaralar mavjud emas.";
-            }
-            
-            bot('sendMessage', [
-                'chat_id' => $chat_id,
-                'text' => $response,
-                'parse_mode' => 'HTML',
-                'reply_markup' => json_encode([
-                    'inline_keyboard' => [
-                        [['text' => '📊 Faol ijaralar', 'callback_data' => 'rental_list']],
-                        [['text' => '⬅️ Orqaga', 'callback_data' => 'back_to_main']]
-                    ]
-                ])
-            ]);
+            editOrSendMessage($chat_id, $text, ['inline_keyboard' => $keyboard], $mid);
             break;
             
         case 'car_status':
             $cars = $conn->query("SELECT c.*, 
-                (SELECT SUM(rental_price) FROM rentals WHERE car_id = c.id AND status = 'completed') as total_earnings,
-                (SELECT COUNT(*) FROM rentals WHERE car_id = c.id AND status = 'completed') as total_rentals
-                FROM cars c");
-            $response = "🚗 Avtomobillar holati (Umumiy):\n\n";
+                (SELECT COUNT(*) FROM rentals WHERE car_id = c.id AND status = 'active') as active_rentals,
+                (SELECT SUM(rental_price) FROM rentals WHERE car_id = c.id AND status = 'completed') as total_earnings
+                FROM cars c ORDER BY model ASC");
+            
+            $text = "🚗 Mashinalar holati:\n\n";
             $keyboard = [];
             
-            if ($cars && $cars->num_rows > 0) {
-                while ($car = $cars->fetch_assoc()) {
-                    $status = $car['status'] == 'rented' ? "🔴 Band" : "🟢 Bo'sh";
-                    if ($car['status'] == 'rented') {
-                        $rental = $conn->query("SELECT r.*, c.full_name, c.phone_number FROM rentals r 
-                                              JOIN customers c ON r.customer_id = c.id 
-                                              WHERE r.car_id = {$car['id']} AND r.status = 'active'")->fetch_assoc();
-                        $customer_info = $rental ? "\n👤 Mijoz: {$rental['full_name']}\n📱 Tel: {$rental['phone_number']}\n⏰ Qaytarish: {$rental['end_date']}" : "";
-                        
-                        if ($rental) {
-                            $keyboard[] = [['text' => "🔄 Qaytarish: {$car['model']} - {$car['license_plate']}", 
-                                          'callback_data' => 'return_car_' . $car['id']]];
-                        }
-                    }
-                    
-                    $response .= "🚘 Rusumi: {$car['model']}\n";
-                    $response .= "🔢 Davlat raqami: {$car['license_plate']}\n";
-                    $response .= "📊 Probeg: " . number_format($car['current_mileage']) . " km\n";
-                    $response .= "📍 Holati: $status$customer_info\n";
-                    $response .= "💰 Jami daromad: " . ($car['total_earnings'] ? number_format($car['total_earnings']) : "0") . " so'm\n";
-                    $response .= "🔄 Jami ijaralar: " . ($car['total_rentals'] ? number_format($car['total_rentals']) : "0") . " ta\n\n";
+            while ($car = $cars->fetch_assoc()) {
+                $status_emoji = $car['status'] == 'available' ? '✅' : '🚫';
+                $text .= "{$status_emoji} {$car['model']} ({$car['license_plate']})\n";
+                $text .= "📊 Probeg: " . number_format($car['current_mileage']) . " km\n";
+                if ($car['condition_notes']) {
+                    $text .= "📝 Holati: {$car['condition_notes']}\n";
                 }
-            } else {
-                $response .= "Hozircha avtomobillar mavjud emas.";
+                $text .= "\n";
+                
+                if ($car['status'] == 'available') {
+                    $keyboard[] = [['text' => "➕ {$car['model']}", 'callback_data' => "rent_car_{$car['id']}"]];
+                }
             }
             
-            // Add total earnings for all cars
-            $total_stats = $conn->query("SELECT 
-                SUM(rental_price) as total_earnings,
-                COUNT(*) as total_rentals
-                FROM rentals 
-                WHERE status = 'completed'")->fetch_assoc();
-            
-            if ($total_stats['total_earnings']) {
-                $response .= "\n📈 <b>Umumiy statistika:</b>\n";
-                $response .= "💰 Jami daromad: " . number_format($total_stats['total_earnings']) . " so'm\n";
-                $response .= "🔄 Jami ijaralar: " . number_format($total_stats['total_rentals']) . " ta\n";
-            }
-            
-            // Add toggle and back buttons
-            $keyboard[] = [['text' => '📅 Oxirgi 30 kun', 'callback_data' => 'car_status_monthly']];
+            $keyboard[] = [['text' => '➕ Mashina qo\'shish', 'callback_data' => 'add_car']];
             $keyboard[] = [['text' => '⬅️ Orqaga', 'callback_data' => 'back_to_main']];
             
-            bot('sendMessage', [
-                'chat_id' => $chat_id,
-                'text' => $response,
-                'parse_mode' => 'HTML',
-                'reply_markup' => json_encode(['inline_keyboard' => $keyboard])
-            ]);
+            editOrSendMessage($chat_id, $text, ['inline_keyboard' => $keyboard], $mid);
+            break;
+            
+        case 'customers':
+            $customers = $conn->query("
+                SELECT c.*, 
+                    COUNT(r.id) as total_rentals,
+                    SUM(CASE WHEN r.status = 'active' THEN 1 ELSE 0 END) as active_rentals
+                FROM customers c
+                LEFT JOIN rentals r ON c.id = r.customer_id
+                GROUP BY c.id
+                ORDER BY c.created_at DESC
+                LIMIT 20
+            ");
+            
+            $text = "📱 Oxirgi 20ta mijoz:\n\n";
+            
+            while ($customer = $customers->fetch_assoc()) {
+                $status_emoji = $customer['active_rentals'] > 0 ? '🚗' : '👤';
+                $text .= "{$status_emoji} {$customer['full_name']}\n";
+                $text .= "📱 {$customer['phone_number']}\n";
+                $text .= "📊 Jami ijaralar: {$customer['total_rentals']}\n\n";
+            }
+            
+            editOrSendMessage($chat_id, $text, [
+                'inline_keyboard' => [
+                    [['text' => '⬅️ Orqaga', 'callback_data' => 'back_to_main']]
+                ]
+            ], $mid);
             break;
             
         case 'violations':
@@ -482,50 +395,15 @@ if (isset($callback)) {
             ]);
             break;
             
-        case 'customers':
-            $customers = $conn->query("
-                SELECT c.*, COUNT(r.id) as rental_count 
-                FROM customers c 
-                LEFT JOIN rentals r ON c.id = r.customer_id 
-                GROUP BY c.id 
-                ORDER BY c.created_at DESC
-            ");
-            
-            $response = "👥 Mijozlar ro'yxati:\n\n";
-            if ($customers && $customers->num_rows > 0) {
-                while ($customer = $customers->fetch_assoc()) {
-                    $response .= "👤 {$customer['full_name']}\n";
-                    $response .= "📱 {$customer['phone_number']}\n";
-                    $response .= "🔄 Ijaralar soni: {$customer['rental_count']}\n\n";
-                }
-            } else {
-                $response .= "Mijozlar mavjud emas.";
-            }
-            
-            bot('sendMessage', [
-                'chat_id' => $chat_id,
-                'text' => $response,
-                'reply_markup' => json_encode([
-                    'inline_keyboard' => [
-                        [['text' => '⬅️ Orqaga', 'callback_data' => 'back_to_main']]
-                    ]
-                ])
-            ]);
-            break;
-            
         case 'back_to_main':
             $keyboard = [
                 [
-                    ['text' => '🚗 Yangi ijara', 'web_app' => ['url'=>"https://vermino.uz/bots/orders/ibo/rent_form.php?user_id=$chat_id"]],
+                    ['text' => '➕ Yangi ijara', 'callback_data' => 'new_rental'],
+                    ['text' => '📊 Ijaralar', 'callback_data' => 'rental_list']
                 ],
                 [
-                    ['text' => '📊 Ijaralar ro\'yxati', 'callback_data' => 'rental_list'],
-                    // ['text' => '🚨 Shtraflar', 'callback_data' => 'violations'],
+                    ['text' => '🚗 Mashinalar', 'callback_data' => 'car_status'],
                     ['text' => '📱 Mijozlar', 'callback_data' => 'customers']
-                ],
-                [
-                    ['text' => '🚗 Mashinalar holati', 'callback_data' => 'car_status'],
-                    ['text' => '➕ Mashina qo\'shish', 'callback_data' => 'add_car']
                 ]
             ];
             
@@ -552,8 +430,8 @@ if (isset($callback)) {
             $conn->query("UPDATE user_states SET state = 'AWAITING_CAR_MODEL', temp_data = NULL WHERE user_id = $from_id");
             break;
         
-        case (preg_match('/^return_car_(\d+)$/', $data, $matches) ? true : false):
-            $car_id = $matches[1];
+        case 'return_car_':
+            $car_id = substr($data, 11);
             
             // Get rental and car info
             $rental_info = $conn->query("
@@ -747,8 +625,11 @@ if (isset($callback)) {
 }
 
 // Handle state-based conversations
-$state_query = $conn->query("SELECT state, `temp_data` FROM `user_states` WHERE `user_id` = '$from_id';");
-$current_state = $state_query && $state_query->num_rows > 0 ? $state_query->fetch_assoc() : ['state' => 'IDLE', 'temp_data' => null];
+$state_query = $conn->query("SELECT state, `temp_data`, last_message_id FROM `user_states` WHERE `user_id` = '$from_id';");
+$current_state = $state_query && $state_query->num_rows > 0 ? $state_query->fetch_assoc() : ['state' => 'IDLE', 'temp_data' => null, 'last_message_id' => null];
+
+// Add last_message_id column to user_states if not exists
+$conn->query("ALTER TABLE user_states ADD COLUMN IF NOT EXISTS last_message_id INT DEFAULT NULL");
 
 switch ($current_state['state']) {
     case 'AWAITING_CUSTOMER_NAME':
