@@ -324,7 +324,10 @@ if (isset($callback)) {
                 $response .= "Hozirda faol ijaralar mavjud emas.\n\n";
             }
             
-            // Send active rentals message
+           bot('deletemessage' [
+               'chat_id' => $chat_id,
+               'message_id' => $callback->message->message_id
+           ]);
             bot('sendMessage', [
                 'chat_id' => $chat_id,
                 'text' => $response,
