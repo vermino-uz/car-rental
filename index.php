@@ -324,7 +324,7 @@ if (isset($callback)) {
                 $response .= "Hozirda faol ijaralar mavjud emas.\n\n";
             }
             
-           bot('deletemessage' [
+           bot('deletemessage', [
                'chat_id' => $chat_id,
                'message_id' => $callback->message->message_id
            ]);
