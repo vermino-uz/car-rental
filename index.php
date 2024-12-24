@@ -375,6 +375,10 @@ if (isset($callback)) {
                 $response .= "Oxirgi 30 kunda tugatilgan ijaralar mavjud emas.";
             }
             
+           bot('deletemessage', [
+               'chat_id' => $chat_id,
+               'message_id' => $callback->message->message_id
+           ]);
             bot('sendMessage', [
                 'chat_id' => $chat_id,
                 'text' => $response,
